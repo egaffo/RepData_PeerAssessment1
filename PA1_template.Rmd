@@ -2,13 +2,15 @@
 title: "Reproducible Research: Peer Assessment 1"
 output: 
   html_document:
-    keep_md: true
+    keep_md: yes
 ---
 
 Set `echo=TRUE` as a global option to show code of every chunk in the document:
 ```{r setoptions, echo=TRUE}
 library(knitr)
 opts_chunk$set(echo = TRUE)
+dir.create("figures", showWarnings = F, recursive = T)
+opts_chunk$set(fig.path = "./figures/")
 ```
 
 ## Loading and preprocessing the data

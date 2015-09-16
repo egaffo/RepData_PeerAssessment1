@@ -66,7 +66,9 @@ img {
 
 <p>Set <code>echo=TRUE</code> as a global option to show code of every chunk in the document:</p>
 <pre class="r"><code>library(knitr)
-opts_chunk$set(echo = TRUE)</code></pre>
+opts_chunk$set(echo = TRUE)
+dir.create(&quot;figures&quot;, showWarnings = F, recursive = T)
+opts_chunk$set(fig.path = &quot;./figures/&quot;)</code></pre>
 <div id="loading-and-preprocessing-the-data" class="section level2">
 <h2>Loading and preprocessing the data</h2>
 <p>If not already done, decompress the data archive. Then load it</p>
@@ -116,7 +118,7 @@ df &lt;- data.frame(Mean = c(mean(activity.per.day$steps.per.day, na.rm = T), me
 rownames(df) &lt;- c(&quot;Original data&quot;, &quot;Filled data&quot;)
 print(xtable(df), type = &quot;html&quot;)</code></pre>
 <!-- html table generated in R 3.2.2 by xtable 1.7-4 package -->
-<!-- Wed Sep 16 17:23:54 2015 -->
+<!-- Wed Sep 16 17:35:17 2015 -->
 <table border="1">
 <tr>
 <th>
