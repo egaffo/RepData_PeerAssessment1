@@ -5,21 +5,88 @@ output:
     keep_md: true
 ---
 
+Set `echo=TRUE` as a global option to show code of every chunk in the document:
+```{r setoptions, echo=TRUE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
 
-
+If not already done, decompress the data archive. Then load it
+```{r}
+if(!file.exists("activity.csv")) unzip("activity.zip", overwrite = F)
+activity <- read.csv("activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
 
+Calculate the total number of steps taken per day and plot histogram
+```{r}
+suppressMessages(library(dplyr))
+activity.per.day <- group_by(activity, date) %>% summarize(steps.per.day = sum(steps, na.rm = T))
+hist(activity.per.day$steps.per.day, xlab = "Steps", main = "Histogram of the total number of steps taken each day")
+```
 
+Mean and median of the total number of steps taken per day
+```{r}
+mean(activity.per.day$steps.per.day, na.rm = T)
+median(activity.per.day$steps.per.day, na.rm = T)
+```
 
 ## What is the average daily activity pattern?
 
+```{r}
+avg.steps <- group_by(activity, interval) %>% summarise(avg.steps = mean(steps, na.rm = T))
+plot(avg.steps$avg.steps ~ avg.steps$interval, type = "l", main = "Average number of steps taken in day intervals")
+```
+
+The 5-minute interval which contains the maximum number of steps, on average across all the days in the dataset, is 
+```{r}
+as.character(avg.steps[avg.steps$avg.steps == max(avg.steps$avg.steps), "interval"])
+```
 
 
 ## Imputing missing values
 
+Total number of missing values in the dataset (i.e. the total number of rows with NAs)
+```{r}
+sum(!complete.cases(activity))
+```
 
+`f.activity` is a new dataset in which we fill `NA` values with the mean across all days value for that interval
+```{r}
+nas <- which(is.na(activity$steps))
+f.activity <- activity
+f.activity[nas, "steps"] <- avg.steps[avg.steps$interval %in% activity[nas, "interval"], "avg.steps"]
+```
+
+Make a histogram of the total number of steps taken each day
+```{r}
+tot.per.day <- group_by(f.activity, date) %>% summarise(tot.steps = sum(steps))
+hist(tot.per.day$tot.steps, main = "Total number of steps taken each day")
+```
+
+Calculate and report the mean and median total number of steps taken per day.
+```{r results='asis'}
+library(xtable)
+df <- data.frame(Mean = c(mean(activity.per.day$steps.per.day, na.rm = T), mean(tot.per.day$tot.steps)), 
+                  Median = c(median(activity.per.day$steps.per.day, na.rm = T), median(tot.per.day$tot.steps)) 
+                  )
+rownames(df) <- c("Original data", "Filled data")
+print(xtable(df), type = "html")
+```
+
+Mean and median calculated in the NA-filled data are greater than the original data mean and median.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+f.activity <- mutate(f.activity, 
+                     weekday = factor(ifelse(weekdays(as.Date(date)) %in% c("sabato", "domenica"), "weekend", "weekday")))
+mean.f.activity <- group_by(f.activity, weekday, interval) %>% summarise(mean.steps = mean(steps))
+library(ggplot2)
+qplot(x = interval, y = mean.steps, data = mean.f.activity, geom = "line") + 
+  facet_wrap(facets = ~ weekday, nrow = 2) + ylab("Number of steps")
+```
+
